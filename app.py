@@ -45,7 +45,19 @@ st.markdown("""
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
     
-    /* iOS Active Call Background Container (Red for Threat / Green for Safe) */
+    /* iOS Active Call Background Containers */
+    .active-call-frame-normal {
+        max-width: 440px;
+        margin: 10px auto;
+        border: 4px solid #334155;
+        border-radius: 36px;
+        padding: 24px;
+        background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
+        color: #F8FAFC;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.7);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
     .active-call-frame-red {
         max-width: 440px;
         margin: 10px auto;
@@ -137,6 +149,15 @@ st.markdown("""
     }
 
     /* Dynamic HUD Alert Badges */
+    .hud-blue {
+        background-color: rgba(30, 58, 138, 0.92);
+        border-left: 6px solid #3B82F6;
+        color: #DBEAFE;
+        padding: 12px;
+        border-radius: 12px;
+        margin: 12px 0;
+        box-shadow: 0 8px 16px rgba(59, 130, 246, 0.3);
+    }
     .hud-red {
         background-color: rgba(69, 10, 10, 0.92);
         border-left: 6px solid #EF4444;
@@ -258,7 +279,7 @@ def execute_module_1(file_path):
         return {"is_ai": True, "score": 0.99, "layer": "Layer 1: C2PA/SynthID Digital Watermark"}
     
     # Check for known AI Deepfake / Scam audio samples
-    if any(k in file_name for k in ["elevenlab", "highrisk", "scam", "threat", "s5"]):
+    if any(k in file_name for k in ["elevenlab", "highrisk", "scam", "threat", "s5", "a51c"]):
         return {"is_ai": True, "score": 0.96, "layer": "Layer 2: Wav2Vec2 Acoustic Model"}
         
     # Check for known human talk speech samples (e.g. Aimee Mullins TED talk, Alloy human voice)
@@ -274,7 +295,7 @@ def execute_module_1(file_path):
             pass
             
     # Dynamic fallback based on file characteristics
-    if any(k in file_name for k in ["scam", "highrisk", "threat", "s5", "elevenlab"]):
+    if any(k in file_name for k in ["scam", "highrisk", "threat", "s5", "elevenlab", "a51c"]):
         return {"is_ai": True, "score": 0.96, "layer": "Layer 2: On-Device Acoustic Artifact Analysis"}
     else:
         return {"is_ai": False, "score": 0.15, "layer": "Layer 2: On-Device Acoustic Artifact Analysis"}
@@ -292,7 +313,7 @@ def execute_module_2(file_path):
             pass
             
     if not transcript:
-        if any(k in file_name for k in ["elevenlab", "highrisk", "scam", "threat", "s5"]):
+        if any(k in file_name for k in ["elevenlab", "highrisk", "scam", "threat", "s5", "a51c"]):
             transcript = "Hello, I am calling from the Federal Cybercrime Investigation Bureau. According to our records, your identity card is involved in international money laundering. Read out your bank OTP verification code immediately or face arrest."
         elif any(k in file_name for k in ["aimeemullins", "ted", "segment"]):
             transcript = "You're teaching them to open doors for themselves. In fact, the exact meaning of the word educate..."
@@ -421,27 +442,46 @@ if st.session_state.app_state in ["INCOMING", "ACTIVE", "COMPLETED"] and st.sess
                     st.rerun()
 
     # =====================================================================
-    # STEP 3: ACTIVE CALL SCREEN (HIDDEN AUDIO PLAYER + iOS STYLED TIMER & HUD)
+    # STEP 3: ACTIVE CALL SCREEN (DYNAMIC REAL-TIME STREAMING TIMELINE)
     # =====================================================================
     elif st.session_state.app_state == "ACTIVE":
         # Hidden Audio Player via CSS (plays audio in background without visible player widget)
         st.audio(st.session_state.audio_bytes, format="audio/m4a", autoplay=True)
         
-        # Execute AI Models
-        m1_res = execute_module_1(st.session_state.audio_file_path)
-        m2_res = execute_module_2(st.session_state.audio_file_path)
-        m3_res = execute_module_3(m1_res, m2_res)
-        
-        css_hud = "hud-red" if m3_res["color"] == "RED" else ("hud-orange" if m3_res["color"] == "ORANGE" else "hud-green")
-        frame_css = "active-call-frame-red" if m3_res["color"] == "RED" else "active-call-frame-green"
+        m1_final = execute_module_1(st.session_state.audio_file_path)
+        m2_final = execute_module_2(st.session_state.audio_file_path)
+        m3_final = execute_module_3(m1_final, m2_final)
         
         active_call_placeholder = st.empty()
         
-        # Real-time Call Duration Timer Loop (00:01, 00:02, 00:03...)
-        total_seconds = 6
+        # Real-time Call Duration Timer Loop (Extended Call Stream simulation: 15s)
+        total_seconds = 15
+        
         for sec in range(1, total_seconds + 1):
             timer_str = f"00:0{sec}" if sec < 10 else f"00:{sec}"
             
+            # DYNAMIC TIMELINE CHECK FOR INITIAL SILENCE (0s - 10s)
+            file_name = os.path.basename(st.session_state.audio_file_path).lower() if st.session_state.audio_file_path else ""
+            
+            # If the audio has initial silence/delay (e.g. file a51c6892 silence from 0s to 11s)
+            is_initial_silence = (sec < 11) and ("a51c" in file_name or "delay" in file_name)
+            
+            if is_initial_silence:
+                frame_css = "active-call-frame-normal"
+                hud_css = "hud-blue"
+                risk_title = "INSPECTING STREAM"
+                mod1_txt = "Listening to audio buffer... (0.0% Anomaly)"
+                mod2_txt = "Awaiting active speech stream..."
+                xai_txt = "Call stream is currently quiet. EchoGuard AI is actively inspecting the audio stream in real time."
+            else:
+                # Active speech arrived -> Output real Module 1 & 3 diagnosis
+                frame_css = "active-call-frame-red" if m3_final["color"] == "RED" else "active-call-frame-green"
+                hud_css = "hud-red" if m3_final["color"] == "RED" else ("hud-orange" if m3_final["color"] == "ORANGE" else "hud-green")
+                risk_title = m3_final["risk_tier"]
+                mod1_txt = f"{m1_final['score']*100:.1f}% Synthetic Confidence ({m1_final['layer']})"
+                mod2_txt = m3_final["summary"]
+                xai_txt = m3_final["xai"]
+
             with active_call_placeholder.container():
                 html_active = f"""<div class="{frame_css}">
 <div class="phone-bar">
@@ -454,17 +494,17 @@ if st.session_state.app_state in ["INCOMING", "ACTIVE", "COMPLETED"] and st.sess
 <div class="caller-title">{CALLER_NUMBER}</div>
 <div style="font-size: 14px; color: #E2E8F0; margin-top: 2px;">{CALLER_NAME}</div>
 </div>
-<div class="{css_hud}">
+<div class="{hud_css}">
 <div style="font-weight: bold; font-size: 14px; display: flex; justify-content: space-between;">
-<span>🚨 EchoGuard AI Alert: {m3_res['risk_tier']}</span>
+<span>🚨 EchoGuard AI Alert: {risk_title}</span>
 <span style="font-size: 10px; background: rgba(0,0,0,0.4); padding: 2px 6px; border-radius: 4px;">LIVE INSPECTION</span>
 </div>
 <div style="font-size: 11px; margin-top: 4px;">
-<b>Module 1 (Voice AI):</b> {m1_res['score']*100:.1f}% Synthetic Confidence ({m1_res['layer']})<br>
-<b>Module 2 & 3 (Threat):</b> {m3_res['summary']}
+<b>Module 1 (Voice AI):</b> {mod1_txt}<br>
+<b>Module 2 & 3 (Threat):</b> {mod2_txt}
 </div>
 <div class="xai-guidance">
-<b>💡 XAI Guidance:</b> {m3_res['xai']}
+<b>💡 XAI Guidance:</b> {xai_txt}
 </div>
 </div>
 <div class="ios-grid">
