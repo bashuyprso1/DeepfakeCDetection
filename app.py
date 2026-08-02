@@ -4,7 +4,7 @@ import os
 import tempfile
 import torch
 
-# Auto-detect HuggingFace Transformers on Streamlit Cloud environment
+# Auto-detect HuggingFace Transformers on Streamlit Cloud
 try:
     from transformers import pipeline
     HAS_TRANSFORMERS = True
@@ -12,7 +12,7 @@ except ImportError:
     HAS_TRANSFORMERS = False
 
 # =====================================================================
-# 1. PAGE CONFIGURATION & CUSTOM CSS FOR EMBEDDED PHONE FRAME
+# 1. PAGE CONFIGURATION & CUSTOM CSS FOR EMBEDDED PHONE CONTAINER
 # =====================================================================
 st.set_page_config(
     page_title="EchoGuard AI - UNESCO Youth Hackathon 2026",
@@ -21,21 +21,22 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Custom CSS to embed Streamlit action buttons seamlessly inside the Dark Phone Frame
+# Custom CSS: Uses Streamlit Form Container as the Dark Smartphone Frame
 st.markdown("""
 <style>
     /* Dark Smartphone Frame Container */
-    .phone-card {
+    div[data-testid="stForm"] {
         max-width: 440px;
         margin: 10px auto;
         border: 4px solid #334155;
         border-radius: 36px;
         padding: 24px;
-        background: #0F172A;
+        background-color: #0F172A !important;
         color: #F8FAFC;
         box-shadow: 0 20px 40px rgba(0,0,0,0.6);
         font-family: 'Segoe UI', Roboto, sans-serif;
     }
+    
     .phone-bar {
         display: flex;
         justify-content: space-between;
@@ -47,7 +48,7 @@ st.markdown("""
     }
     .caller-container {
         text-align: center;
-        margin: 20px 0 25px 0;
+        margin: 15px 0 25px 0;
     }
     .caller-avatar {
         font-size: 55px;
@@ -64,7 +65,7 @@ st.markdown("""
         margin-top: 4px;
     }
 
-    /* Dynamic HUD Alert Overlay Cards */
+    /* Dynamic HUD Alert Overlay Badges */
     .hud-red {
         background-color: #450A0A;
         border-left: 6px solid #EF4444;
@@ -97,22 +98,22 @@ st.markdown("""
         margin-top: 6px;
     }
 
-    /* Custom CSS to style Action Buttons inside Phone Frame */
-    div[data-testid="stColumn"] button[kind="secondary"] {
+    /* Style Action Buttons Inside Dark Phone Frame */
+    div[data-testid="stForm"] button[data-testid="baseButton-secondary"] {
         background-color: #DC2626 !important;
         color: white !important;
         border: none !important;
         border-radius: 20px !important;
-        height: 46px !important;
+        height: 48px !important;
         font-weight: bold !important;
         font-size: 14px !important;
     }
-    div[data-testid="stColumn"] button[kind="primary"] {
+    div[data-testid="stForm"] button[data-testid="baseButton-primary"] {
         background-color: #16A34A !important;
         color: white !important;
         border: none !important;
         border-radius: 20px !important;
-        height: 46px !important;
+        height: 48px !important;
         font-weight: bold !important;
         font-size: 14px !important;
     }
@@ -261,7 +262,7 @@ if uploaded_audio is not None:
         st.session_state.app_state = "INCOMING"
 
 # =====================================================================
-# STEP 2: INCOMING PHONE CALL INTERFACE (EMBEDDED BUTTONS)
+# STEP 2: INCOMING PHONE CALL SCREEN WITH BUTTONS EMBEDDED INSIDE FRAME
 # =====================================================================
 if st.session_state.app_state in ["INCOMING", "ACTIVE", "COMPLETED"]:
     st.markdown("### 📱 Step 2: Real-Time Smartphone Call Simulation")
@@ -270,9 +271,9 @@ if st.session_state.app_state in ["INCOMING", "ACTIVE", "COMPLETED"]:
     
     if st.session_state.app_state == "INCOMING":
         with phone_placeholder.container():
-            # Open dark phone card container
-            st.markdown("""
-            <div class="phone-card">
+            # STREAMLIT FORM WRAPS CALLER INFO AND BUTTONS TOGETHER INSIDE ONE DARK CARD
+            with st.form(key="incoming_call_form", border=False):
+                st.markdown("""
                 <div class="phone-bar">
                     <span>📶 5G Telecom Stream</span>
                     <span style="color: #38BDF8;">🔔 Incoming Call...</span>
@@ -284,24 +285,22 @@ if st.session_state.app_state in ["INCOMING", "ACTIVE", "COMPLETED"]:
                     <div class="caller-sub">+1 (800) 555-0199</div>
                     <div style="font-size: 11px; color: #CBD5E1; margin-top: 8px;">⚠️ Unverified Telecom Number</div>
                 </div>
-            """, unsafe_allow_html=True)
-            
-            # Action Buttons embedded inside phone card container
-            col_decline, col_accept = st.columns(2)
-            with col_decline:
-                if st.button("📵 DECLINE", key="btn_decline", use_container_width=True, type="secondary"):
+                """, unsafe_allow_html=True)
+                
+                # Action Buttons placed INSIDE the form container
+                col_decline, col_accept = st.columns(2)
+                with col_decline:
+                    decline_submitted = st.form_submit_button("📵 DECLINE", use_container_width=True, type="secondary")
+                with col_accept:
+                    accept_submitted = st.form_submit_button("📲 ACCEPT", use_container_width=True, type="primary")
+
+                if decline_submitted:
                     st.session_state.app_state = "COMPLETED"
                     st.warning("Call declined by user.")
                     st.rerun()
-            with col_accept:
-                if st.button("📲 ACCEPT", key="btn_accept", use_container_width=True, type="primary"):
+                elif accept_submitted:
                     st.session_state.app_state = "ACTIVE"
                     st.rerun()
-
-            # Close dark phone card container
-            st.markdown("""
-            </div>
-            """, unsafe_allow_html=True)
 
     # =====================================================================
     # STEP 3: ACTIVE CALL PLAYBACK & REAL-TIME PIPELINE EXECUTION
