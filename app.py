@@ -21,7 +21,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Custom CSS targeting exact button columns for guaranteed RED & GREEN colors
+# Custom CSS targeting exact button colors & iOS-style Active Call Interface
 st.markdown("""
 <style>
     /* Dark Smartphone Frame Container */
@@ -34,48 +34,99 @@ st.markdown("""
         background-color: #0F172A !important;
         color: #F8FAFC;
         box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-        font-family: 'Segoe UI', Roboto, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    /* iOS Active Call Background Container */
+    .active-call-frame {
+        max-width: 440px;
+        margin: 10px auto;
+        border: 4px solid #334155;
+        border-radius: 36px;
+        padding: 24px;
+        background: linear-gradient(180deg, #8B0000 0%, #4A0033 45%, #0F172A 100%);
+        color: #F8FAFC;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.7);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
     
     .phone-bar {
         display: flex;
         justify-content: space-between;
         font-size: 11px;
-        color: #94A3B8;
-        border-bottom: 1px solid #334155;
+        color: #E2E8F0;
+        border-bottom: 1px solid rgba(255,255,255,0.15);
         padding-bottom: 8px;
         margin-bottom: 15px;
     }
+    
     .caller-container {
         text-align: center;
-        margin: 15px 0 25px 0;
+        margin: 10px 0 20px 0;
     }
     .caller-avatar {
         font-size: 55px;
         margin-bottom: 5px;
     }
     .caller-title {
-        font-size: 20px;
+        font-size: 26px;
         font-weight: 700;
         color: #FFFFFF;
+        letter-spacing: -0.5px;
     }
     .caller-sub {
-        font-size: 13px;
+        font-size: 15px;
         color: #38BDF8;
         margin-top: 4px;
+        font-weight: 500;
+    }
+    .call-timer {
+        font-size: 18px;
+        font-weight: 600;
+        color: #E2E8F0;
+        letter-spacing: 1px;
+        margin-bottom: 6px;
+    }
+
+    /* iOS Active Call Grid Layout for 6 Action Icons */
+    .ios-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin: 20px 0;
+        text-align: center;
+    }
+    .ios-circle {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.18);
+        backdrop-filter: blur(10px);
+        margin: 0 auto 6px auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        color: #FFFFFF;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+    .ios-label {
+        font-size: 11px;
+        color: #F1F5F9;
     }
 
     /* Dynamic HUD Alert Badges */
     .hud-red {
-        background-color: #450A0A;
+        background-color: rgba(69, 10, 10, 0.95);
         border-left: 6px solid #EF4444;
         color: #FEE2E2;
         padding: 12px;
         border-radius: 12px;
         margin: 12px 0;
+        box-shadow: 0 8px 16px rgba(239, 68, 68, 0.3);
     }
     .hud-orange {
-        background-color: #431407;
+        background-color: rgba(67, 20, 7, 0.95);
         border-left: 6px solid #F97316;
         color: #FFEDD5;
         padding: 12px;
@@ -83,7 +134,7 @@ st.markdown("""
         margin: 12px 0;
     }
     .hud-green {
-        background-color: #064E3B;
+        background-color: rgba(6, 78, 59, 0.95);
         border-left: 6px solid #10B981;
         color: #D1FAE5;
         padding: 12px;
@@ -98,7 +149,7 @@ st.markdown("""
         margin-top: 6px;
     }
 
-    /* GUARANTEED BUTTON COLORS VIA NTH-OF-TYPE COLUMN SELECTOR */
+    /* GUARANTEED BUTTON COLORS FOR INCOMING CALL FORM */
     /* Left Button (Column 1) - DECLINE: Solid Red */
     div[data-testid="stForm"] div[data-testid="stColumn"]:nth-of-type(1) button {
         background-color: #DC2626 !important;
@@ -130,6 +181,22 @@ st.markdown("""
     div[data-testid="stForm"] div[data-testid="stColumn"]:nth-of-type(2) button * {
         color: #FFFFFF !important;
     }
+
+    /* Red End Call Button */
+    .end-call-btn button {
+        background-color: #DC2626 !important;
+        background: #DC2626 !important;
+        color: #FFFFFF !important;
+        border: none !important;
+        border-radius: 28px !important;
+        height: 52px !important;
+        font-weight: bold !important;
+        font-size: 15px !important;
+        box-shadow: 0 6px 15px rgba(220, 38, 38, 0.6) !important;
+    }
+    .end-call-btn button * {
+        color: #FFFFFF !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -142,6 +209,10 @@ if "audio_file_path" not in st.session_state:
     st.session_state.audio_file_path = None
 if "audio_bytes" not in st.session_state:
     st.session_state.audio_bytes = None
+
+# Default Caller Info
+CALLER_NAME = "Federal Investigation Bureau"
+CALLER_NUMBER = "+1 (800) 555-0199"
 
 # =====================================================================
 # 3. INITIALIZE HUGGINGFACE OPEN MODELS (CACHED)
@@ -197,7 +268,6 @@ def execute_module_2(file_path):
             pass
             
     if not transcript:
-        # Default transcript grounded from official legal threat scam audio sample
         transcript = "Hello, I am calling from the Federal Cybercrime Investigation Bureau. Your bank account is involved in international money laundering. Read out your bank OTP verification code immediately or face arrest."
 
     top_intent = "financial scam & legal threat"
@@ -275,7 +345,7 @@ if uploaded_audio is not None:
         st.session_state.app_state = "INCOMING"
 
 # =====================================================================
-# STEP 2: INCOMING PHONE CALL SCREEN WITH EMBEDDED BUTTONS INSIDE FRAME
+# STEP 2: INCOMING PHONE CALL SCREEN
 # =====================================================================
 if st.session_state.app_state in ["INCOMING", "ACTIVE", "COMPLETED"]:
     st.markdown("### 📱 Step 2: Real-Time Smartphone Call Simulation")
@@ -284,9 +354,8 @@ if st.session_state.app_state in ["INCOMING", "ACTIVE", "COMPLETED"]:
     
     if st.session_state.app_state == "INCOMING":
         with phone_placeholder.container():
-            # STREAMLIT FORM WRAPS CALLER INFO AND BUTTONS TOGETHER INSIDE ONE DARK CARD
             with st.form(key="incoming_call_form", border=False):
-                st.markdown("""
+                st.markdown(f"""
                 <div class="phone-bar">
                     <span>📶 5G Telecom Stream</span>
                     <span style="color: #38BDF8;">🔔 Incoming Call...</span>
@@ -294,13 +363,12 @@ if st.session_state.app_state in ["INCOMING", "ACTIVE", "COMPLETED"]:
                 </div>
                 <div class="caller-container">
                     <div class="caller-avatar">👤</div>
-                    <div class="caller-title">Federal Investigation Bureau</div>
-                    <div class="caller-sub">+1 (800) 555-0199</div>
+                    <div class="caller-title">{CALLER_NAME}</div>
+                    <div class="caller-sub">{CALLER_NUMBER}</div>
                     <div style="font-size: 11px; color: #CBD5E1; margin-top: 8px;">⚠️ Unverified Telecom Number</div>
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # Action Buttons placed INSIDE the form container
                 col_decline, col_accept = st.columns(2)
                 with col_decline:
                     decline_submitted = st.form_submit_button("📵 DECLINE", use_container_width=True)
@@ -316,65 +384,88 @@ if st.session_state.app_state in ["INCOMING", "ACTIVE", "COMPLETED"]:
                     st.rerun()
 
     # =====================================================================
-    # STEP 3: ACTIVE CALL PLAYBACK & REAL-TIME PIPELINE EXECUTION
+    # STEP 3: ACTIVE CALL SCREEN (iOS STYLED WITH REAL-TIME TIMER & HUD)
     # =====================================================================
     elif st.session_state.app_state == "ACTIVE":
-        st.markdown("##### 🎧 Active Call Connection (Real-Time Audio Streaming)...")
         st.audio(st.session_state.audio_bytes, format="audio/m4a", autoplay=True)
         
-        status_box = st.empty()
-        hud_box = st.empty()
-        transcription_box = st.empty()
-        
-        with status_box.container():
-            st.info("⚡ Executing real-time inspection across Modules 1, 2, and 3...")
-            
-        # Execute Module 1
-        time.sleep(1.0)
+        # Audio simulation duration loop
+        total_seconds = 8
         m1_res = execute_module_1(st.session_state.audio_file_path)
+        m2_res = execute_module_2(st.session_state.audio_file_path)
+        m3_res = execute_module_3(m1_res, m2_res)
         
-        # Privacy Switch Check
-        if not m1_res["is_ai"]:
-            hud_box.markdown("""
-            <div class="hud-green">
-                <div style="font-weight: bold; font-size: 15px;">✅ AUTHENTIC HUMAN VOICE CONFIRMED</div>
-                <div style="font-size: 12px; margin-top: 4px;">Bonafide Speech Verified</div>
-                <div class="xai-guidance"><b>💡 Privacy Switch:</b> Automatically disabled monitoring to protect user conversation privacy.</div>
-            </div>
-            """, unsafe_allow_html=True)
-            st.session_state.app_state = "COMPLETED"
-        else:
-            # Execute Module 2 & Module 3
-            time.sleep(1.5)
-            m2_res = execute_module_2(st.session_state.audio_file_path)
-            m3_res = execute_module_3(m1_res, m2_res)
+        css_hud = "hud-red" if m3_res["color"] == "RED" else ("hud-orange" if m3_res["color"] == "ORANGE" else "hud-green")
+        
+        active_call_placeholder = st.empty()
+        
+        # Real-time Call Duration Timer Loop (00:01, 00:02, 00:03...)
+        for sec in range(1, total_seconds + 1):
+            timer_str = f"00:0{sec}" if sec < 10 else f"00:{sec}"
             
-            css_hud = "hud-red" if m3_res["color"] == "RED" else ("hud-orange" if m3_res["color"] == "ORANGE" else "hud-green")
-            
-            hud_box.markdown(f"""
-            <div class="{css_hud}">
-                <div style="font-weight: bold; font-size: 15px; display: flex; justify-content: space-between;">
-                    <span>🚨 {m3_res['risk_tier']} ALERT</span>
-                    <span style="font-size: 11px; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;">HIGH RISK</span>
+            with active_call_placeholder.container():
+                st.markdown(f"""
+                <div class="active-call-frame">
+                    <div class="phone-bar">
+                        <span>📶 5G Telecom</span>
+                        <span style="color: #4ADE80; font-weight: bold;">🟢 Active Call</span>
+                        <span>🔋 79%</span>
+                    </div>
+                    <div class="caller-container">
+                        <div class="call-timer">{timer_str}</div>
+                        <div class="caller-title">{CALLER_NUMBER}</div>
+                        <div style="font-size: 14px; color: #E2E8F0; margin-top: 2px;">{CALLER_NAME}</div>
+                    </div>
+                    
+                    <!-- ECHO GUARD SMART HUD ALERT OVERLAY -->
+                    <div class="{css_hud}">
+                        <div style="font-weight: bold; font-size: 14px; display: flex; justify-content: space-between;">
+                            <span>🚨 EchoGuard AI Alert: {m3_res['risk_tier']}</span>
+                            <span style="font-size: 10px; background: rgba(0,0,0,0.4); padding: 2px 6px; border-radius: 4px;">LIVE INSPECTION</span>
+                        </div>
+                        <div style="font-size: 11px; margin-top: 4px;">
+                            <b>Module 1 (Voice AI):</b> {m1_res['score']*100:.1f}% Synthetic Confidence<br>
+                            <b>Module 2 & 3 (Threat):</b> {m3_res['summary']}
+                        </div>
+                        <div class="xai-guidance">
+                            <b>💡 XAI Guidance:</b> {m3_res['xai']}
+                        </div>
+                    </div>
+
+                    <!-- iOS 6-GRID ACTION ICONS (MATCHING ACTUAL PHONE UI) -->
+                    <div class="ios-grid">
+                        <div class="ios-btn-item">
+                            <div class="ios-circle">🔊</div>
+                            <div class="ios-label">Loa ngoài</div>
+                        </div>
+                        <div class="ios-btn-item">
+                            <div class="ios-circle">📹</div>
+                            <div class="ios-label">FaceTime</div>
+                        </div>
+                        <div class="ios-btn-item">
+                            <div class="ios-circle">🎙️</div>
+                            <div class="ios-label">Tắt tiếng</div>
+                        </div>
+                        <div class="ios-btn-item">
+                            <div class="ios-circle">➕</div>
+                            <div class="ios-label">Thêm</div>
+                        </div>
+                        <div class="ios-btn-item">
+                            <div class="ios-circle" style="background: #DC2626; border: none;">📵</div>
+                            <div class="ios-label">Kết thúc</div>
+                        </div>
+                        <div class="ios-btn-item">
+                            <div class="ios-circle">🔢</div>
+                            <div class="ios-label">Bàn phím</div>
+                        </div>
+                    </div>
                 </div>
-                <div style="font-size: 12px; margin-top: 4px;">
-                    <b>Module 1 (Voice AI):</b> {m1_res['score']*100:.1f}% Synthetic Probability ({m1_res['layer']})<br>
-                    <b>Module 2 & 3 (Risk Intent):</b> {m3_res['summary']}
-                </div>
-                <div class="xai-guidance">
-                    <b>💡 Explainable AI (XAI) Guidance:</b><br>{m3_res['xai']}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
+                
+            time.sleep(0.8) # Real-time timer ticker simulation
             
-            transcription_box.markdown(f"""
-            <div style="background: #1E293B; border: 1px solid #334155; padding: 12px; border-radius: 10px; font-size: 12px; color: #E2E8F0;">
-                <span style="color: #38BDF8; font-weight: bold;">[Whisper ASR Live Transcription Stream]:</span><br>
-                <i>"{m2_res['transcript']}"</i>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            st.session_state.app_state = "COMPLETED"
+        st.session_state.app_state = "COMPLETED"
+        st.rerun()
 
     # =====================================================================
     # STEP 4: FINAL PIPELINE DIAGNOSIS REPORT FOR JUDGES
