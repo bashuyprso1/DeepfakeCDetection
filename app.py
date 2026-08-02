@@ -4,7 +4,7 @@ import os
 import tempfile
 import torch
 
-# Tự động phát hiện và sử dụng HuggingFace nếu có trên môi trường Streamlit Cloud
+# Auto-detect HuggingFace Transformers on Streamlit Cloud environment
 try:
     from transformers import pipeline
     HAS_TRANSFORMERS = True
@@ -12,28 +12,28 @@ except ImportError:
     HAS_TRANSFORMERS = False
 
 # =====================================================================
-# 1. CẤU HÌNH TRANG & GIAO DIỆN SMARTPHONE CSS
+# 1. PAGE CONFIGURATION & CUSTOM CSS FOR EMBEDDED PHONE FRAME
 # =====================================================================
 st.set_page_config(
-    page_title="EchoGuard AI - UNESCO Hackathon 2026",
+    page_title="EchoGuard AI - UNESCO Youth Hackathon 2026",
     page_icon="🛡️",
     layout="centered",
     initial_sidebar_state="collapsed"
 )
 
-# Style CSS tạo khung điện thoại di động và các thẻ cảnh báo HUD Smart Nudge
+# Custom CSS to embed Streamlit action buttons seamlessly inside the Dark Phone Frame
 st.markdown("""
 <style>
-    /* Khung giả lập màn hình Điện thoại */
-    .phone-screen {
-        max-width: 420px;
+    /* Dark Smartphone Frame Container */
+    .phone-card {
+        max-width: 440px;
         margin: 10px auto;
-        border: 4px solid #1E293B;
+        border: 4px solid #334155;
         border-radius: 36px;
-        padding: 20px;
+        padding: 24px;
         background: #0F172A;
         color: #F8FAFC;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.6);
         font-family: 'Segoe UI', Roboto, sans-serif;
     }
     .phone-bar {
@@ -47,7 +47,7 @@ st.markdown("""
     }
     .caller-container {
         text-align: center;
-        margin: 20px 0;
+        margin: 20px 0 25px 0;
     }
     .caller-avatar {
         font-size: 55px;
@@ -63,14 +63,15 @@ st.markdown("""
         color: #38BDF8;
         margin-top: 4px;
     }
-    /* Dynamic HUD Alert Badges */
+
+    /* Dynamic HUD Alert Overlay Cards */
     .hud-red {
         background-color: #450A0A;
         border-left: 6px solid #EF4444;
         color: #FEE2E2;
         padding: 12px;
         border-radius: 12px;
-        margin: 10px 0;
+        margin: 12px 0;
     }
     .hud-orange {
         background-color: #431407;
@@ -78,7 +79,7 @@ st.markdown("""
         color: #FFEDD5;
         padding: 12px;
         border-radius: 12px;
-        margin: 10px 0;
+        margin: 12px 0;
     }
     .hud-green {
         background-color: #064E3B;
@@ -86,7 +87,7 @@ st.markdown("""
         color: #D1FAE5;
         padding: 12px;
         border-radius: 12px;
-        margin: 10px 0;
+        margin: 12px 0;
     }
     .xai-guidance {
         background: rgba(255,255,255,0.12);
@@ -95,11 +96,31 @@ st.markdown("""
         font-size: 11px;
         margin-top: 6px;
     }
+
+    /* Custom CSS to style Action Buttons inside Phone Frame */
+    div[data-testid="stColumn"] button[kind="secondary"] {
+        background-color: #DC2626 !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 20px !important;
+        height: 46px !important;
+        font-weight: bold !important;
+        font-size: 14px !important;
+    }
+    div[data-testid="stColumn"] button[kind="primary"] {
+        background-color: #16A34A !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 20px !important;
+        height: 46px !important;
+        font-weight: bold !important;
+        font-size: 14px !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 # =====================================================================
-# 2. KHỞI TẠO QUẢN LÝ TRẠNG THÁI (SESSION STATE)
+# 2. SESSION STATE MANAGEMENT
 # =====================================================================
 if "app_state" not in st.session_state:
     st.session_state.app_state = "IDLE"  # IDLE -> INCOMING -> ACTIVE -> COMPLETED
@@ -109,10 +130,10 @@ if "audio_bytes" not in st.session_state:
     st.session_state.audio_bytes = None
 
 # =====================================================================
-# 3. TẢI CÁC MÔ HÌNH AI HUGGINGFACE (CACHED)
+# 3. INITIALIZE HUGGINGFACE OPEN MODELS (CACHED)
 # =====================================================================
 @st.cache_resource
-def init_huggingface_pipelines():
+def init_huggingface_models():
     models = {}
     if HAS_TRANSFORMERS:
         device = 0 if torch.cuda.is_available() else -1
@@ -130,13 +151,13 @@ def init_huggingface_pipelines():
             models["mod2_intent"] = None
     return models
 
-ai_models = init_huggingface_pipelines()
+ai_models = init_huggingface_models()
 
 # =====================================================================
-# 4. HÀM THỰC THI THUẬT TOÁN CHO 3 MODULE PIPELINE
+# 4. MODULE PIPELINE EXECUTION ALGORITHMS (100% ENGLISH)
 # =====================================================================
 def execute_module_1(file_path):
-    """Module 1: AI Voice Detection (C2PA Watermark + Wav2Vec2 Acoustic Detector)"""
+    """Module 1: AI Voice Detection (C2PA Watermark + Wav2Vec2 Acoustic Model)"""
     file_name = os.path.basename(file_path).lower()
     if "synthid" in file_name or "c2pa" in file_name:
         return {"is_ai": True, "score": 0.99, "layer": "Layer 1: C2PA/SynthID Digital Watermark"}
@@ -152,7 +173,7 @@ def execute_module_1(file_path):
     return {"is_ai": True, "score": 0.94, "layer": "Layer 2: On-Device Acoustic Artifact Analysis"}
 
 def execute_module_2(file_path):
-    """Module 2: Harm Assessment (Whisper ASR + Zero-Shot Intent NLP)"""
+    """Module 2: Harm Assessment (Whisper ASR + Zero-Shot Intent Classifier)"""
     transcript = ""
     if ai_models.get("mod2_asr"):
         try:
@@ -163,7 +184,7 @@ def execute_module_2(file_path):
             
     if not transcript:
         # Default transcript grounded from official legal threat scam audio sample
-        transcript = "Hello, I am calling from the Federal Cybercrime Investigation Bureau. Your bank account is involved in international money laundering. Read out your bank OTP code immediately or face arrest."
+        transcript = "Hello, I am calling from the Federal Cybercrime Investigation Bureau. Your bank account is involved in international money laundering. Read out your bank OTP verification code immediately or face arrest."
 
     top_intent = "financial scam & legal threat"
     top_score = 0.95
@@ -186,7 +207,7 @@ def execute_module_3(mod1_res, mod2_res):
             "risk_tier": "HUMAN_VOICE",
             "color": "GREEN",
             "summary": "Authentic Human Voice Verified.",
-            "xai": "Cuộc gọi từ người thật. Hệ thống tự động ngắt giám sát để bảo vệ quyền riêng tư người dùng."
+            "xai": "Authentic human conversation. Privacy switch deactivated further monitoring to protect user privacy."
         }
         
     intent = mod2_res["intent"]
@@ -194,26 +215,26 @@ def execute_module_3(mod1_res, mod2_res):
         return {
             "risk_tier": "HIGH_RISK",
             "color": "RED",
-            "summary": "Cảnh báo Lừa đảo Tài chính / Giả danh Cơ quan Pháp luật.",
-            "xai": "KHÔNG chuyển tiền, KHÔNG cung cấp mã OTP hoặc thông tin cá nhân. Hãy xác minh lại qua kênh liên lạc độc lập chính thức."
+            "summary": "Critical Financial Scam / Legal Threat Impersonation Alert.",
+            "xai": "DO NOT transfer money or share bank OTP verification codes. Verify caller identity via an independent official channel."
         }
     elif intent == "customer support":
         return {
             "risk_tier": "LOW_RISK",
             "color": "GREEN",
-            "summary": "Tổng đài CSKH / Trợ lý ảo Tự động Hợp pháp.",
-            "xai": "Cuộc gọi tự động cung cấp thông tin hợp pháp. An toàn để tiếp tục."
+            "summary": "Authorized Automated Customer Support Bot.",
+            "xai": "Legitimate automated service call. Safe to proceed."
         }
     else:
         return {
             "risk_tier": "MEDIUM_RISK",
             "color": "ORANGE",
-            "summary": "Phát hiện Giọng nói AI nhưng bối cảnh chưa xác định.",
-            "xai": "Thận trọng khi chia sẻ thông tin cá nhân trong cuộc gọi này."
+            "summary": "Unverified Synthetic AI Voice Call Detected.",
+            "xai": "Exercise caution before disclosing personal or financial information."
         }
 
 # =====================================================================
-# 5. TIÊU ĐỀ ỨNG DỤNG STREAMLIT
+# 5. APPLICATION HEADER (100% ENGLISH)
 # =====================================================================
 st.title("🛡️ EchoGuard AI")
 st.subheader("Real-time On-Device AI Voice Risk Detection & Nudge System")
@@ -222,16 +243,15 @@ st.caption("UNESCO Youth Hackathon 2026 | Media and Information Literacy (MIL)")
 st.divider()
 
 # =====================================================================
-# BƯỚC 1: TẢI FILE AUDIO LÊN
+# STEP 1: UPLOAD TEST AUDIO FILE
 # =====================================================================
-st.markdown("### 📥 Bước 1: Tải file cuộc gọi Audio (.m4a, .wav, .mp3)")
+st.markdown("### 📥 Step 1: Upload Test Audio File (.m4a, .wav, .mp3)")
 uploaded_audio = st.file_uploader(
-    "Chọn hoặc kéo thả file audio cuộc gọi mẫu vào đây",
+    "Choose or drag and drop an audio call sample file",
     type=["m4a", "wav", "mp3", "flac"]
 )
 
 if uploaded_audio is not None:
-    # Lưu file audio tạm thời để xử lý
     with tempfile.NamedTemporaryFile(delete=False, suffix=f".{uploaded_audio.name.split('.')[-1]}") as tmp:
         tmp.write(uploaded_audio.getvalue())
         st.session_state.audio_file_path = tmp.name
@@ -241,18 +261,18 @@ if uploaded_audio is not None:
         st.session_state.app_state = "INCOMING"
 
 # =====================================================================
-# BƯỚC 2: MÀN HÌNH ĐIỆN THOẠI VỚI NÚT CHẤP NHẬN / TỪ CHỐI
+# STEP 2: INCOMING PHONE CALL INTERFACE (EMBEDDED BUTTONS)
 # =====================================================================
 if st.session_state.app_state in ["INCOMING", "ACTIVE", "COMPLETED"]:
-    st.markdown("### 📱 Bước 2: Mô phỏng Màn hình Điện thoại Smartphone")
+    st.markdown("### 📱 Step 2: Real-Time Smartphone Call Simulation")
     
-    phone_container = st.empty()
+    phone_placeholder = st.empty()
     
-    # TRẠNG THÁI CUỘC GỌI ĐẾN (INCOMING CALL)
     if st.session_state.app_state == "INCOMING":
-        with phone_container.container():
+        with phone_placeholder.container():
+            # Open dark phone card container
             st.markdown("""
-            <div class="phone-screen">
+            <div class="phone-card">
                 <div class="phone-bar">
                     <span>📶 5G Telecom Stream</span>
                     <span style="color: #38BDF8;">🔔 Incoming Call...</span>
@@ -262,28 +282,32 @@ if st.session_state.app_state in ["INCOMING", "ACTIVE", "COMPLETED"]:
                     <div class="caller-avatar">👤</div>
                     <div class="caller-title">Federal Investigation Bureau</div>
                     <div class="caller-sub">+1 (800) 555-0199</div>
-                    <div style="font-size: 11px; color: #E2E8F0; margin-top: 8px;">⚠️ Số điện thoại chưa xác minh</div>
+                    <div style="font-size: 11px; color: #CBD5E1; margin-top: 8px;">⚠️ Unverified Telecom Number</div>
                 </div>
-            </div>
             """, unsafe_allow_html=True)
             
-            # 2 NÚT BẤM TỪ CHỐI & CHẤP NHẬN CÓ ICON DÀNH CHO NGƯỜI DÙNG
+            # Action Buttons embedded inside phone card container
             col_decline, col_accept = st.columns(2)
             with col_decline:
-                if st.button("🔴 DECLINE (Từ chối cuộc gọi)", use_container_width=True, type="secondary"):
+                if st.button("📵 DECLINE", key="btn_decline", use_container_width=True, type="secondary"):
                     st.session_state.app_state = "COMPLETED"
-                    st.warning("Cuộc gọi đã bị từ chối bởi người dùng.")
+                    st.warning("Call declined by user.")
                     st.rerun()
             with col_accept:
-                if st.button("🟢 ACCEPT (Chấp nhận cuộc gọi)", use_container_width=True, type="primary"):
+                if st.button("📲 ACCEPT", key="btn_accept", use_container_width=True, type="primary"):
                     st.session_state.app_state = "ACTIVE"
                     st.rerun()
 
+            # Close dark phone card container
+            st.markdown("""
+            </div>
+            """, unsafe_allow_html=True)
+
     # =====================================================================
-    # BƯỚC 3: PHÁT AUDIO REAL-TIME & KÍCH HOẠT PIPELINE 3 MODULE
+    # STEP 3: ACTIVE CALL PLAYBACK & REAL-TIME PIPELINE EXECUTION
     # =====================================================================
     elif st.session_state.app_state == "ACTIVE":
-        st.markdown("##### 🎧 Cuộc gọi đang kết nối (Real-time Streaming)...")
+        st.markdown("##### 🎧 Active Call Connection (Real-Time Audio Streaming)...")
         st.audio(st.session_state.audio_bytes, format="audio/m4a", autoplay=True)
         
         status_box = st.empty()
@@ -291,29 +315,28 @@ if st.session_state.app_state in ["INCOMING", "ACTIVE", "COMPLETED"]:
         transcription_box = st.empty()
         
         with status_box.container():
-            st.info("⚡ Đang phân tích luồng âm thanh thời gian thực qua Module 1, 2, 3...")
+            st.info("⚡ Executing real-time inspection across Modules 1, 2, and 3...")
             
-        # Kích hoạt Module 1
+        # Execute Module 1
         time.sleep(1.0)
         m1_res = execute_module_1(st.session_state.audio_file_path)
         
-        # Kiểm tra Quyền riêng tư (Privacy Switch)
+        # Privacy Switch Check
         if not m1_res["is_ai"]:
             hud_box.markdown("""
             <div class="hud-green">
                 <div style="font-weight: bold; font-size: 15px;">✅ AUTHENTIC HUMAN VOICE CONFIRMED</div>
-                <div style="font-size: 12px; margin-top: 4px;">Giọng nói Người thật (Bonafide Speech)</div>
-                <div class="xai-guidance"><b>💡 Privacy Switch:</b> Tự động ngắt tính năng phân tích để bảo vệ quyền riêng tư cuộc gọi.</div>
+                <div style="font-size: 12px; margin-top: 4px;">Bonafide Speech Verified</div>
+                <div class="xai-guidance"><b>💡 Privacy Switch:</b> Automatically disabled monitoring to protect user conversation privacy.</div>
             </div>
             """, unsafe_allow_html=True)
             st.session_state.app_state = "COMPLETED"
         else:
-            # Kích hoạt Module 2 & Module 3
+            # Execute Module 2 & Module 3
             time.sleep(1.5)
             m2_res = execute_module_2(st.session_state.audio_file_path)
             m3_res = execute_module_3(m1_res, m2_res)
             
-            # Hiển thị thẻ HUD Cảnh báo Real-time
             css_hud = "hud-red" if m3_res["color"] == "RED" else ("hud-orange" if m3_res["color"] == "ORANGE" else "hud-green")
             
             hud_box.markdown(f"""
@@ -332,7 +355,6 @@ if st.session_state.app_state in ["INCOMING", "ACTIVE", "COMPLETED"]:
             </div>
             """, unsafe_allow_html=True)
             
-            # Hiển thị Văn bản Chuyển đổi Real-time ASR
             transcription_box.markdown(f"""
             <div style="background: #1E293B; border: 1px solid #334155; padding: 12px; border-radius: 10px; font-size: 12px; color: #E2E8F0;">
                 <span style="color: #38BDF8; font-weight: bold;">[Whisper ASR Live Transcription Stream]:</span><br>
@@ -343,11 +365,11 @@ if st.session_state.app_state in ["INCOMING", "ACTIVE", "COMPLETED"]:
             st.session_state.app_state = "COMPLETED"
 
     # =====================================================================
-    # BƯỚC 4: BÁO CÁO KẾT QUẢ CUỐI CÙNG DÀNH CHO BAN GIÁM KHẢO
+    # STEP 4: FINAL PIPELINE DIAGNOSIS REPORT FOR JUDGES
     # =====================================================================
     if st.session_state.app_state == "COMPLETED" and st.session_state.audio_file_path:
         st.divider()
-        st.markdown("### 📊 Kết quả Chẩn đoán Pipeline Cuối cùng")
+        st.markdown("### 📊 Final Pipeline Diagnosis Report")
         
         m1_final = execute_module_1(st.session_state.audio_file_path)
         m2_final = execute_module_2(st.session_state.audio_file_path)
@@ -361,7 +383,7 @@ if st.session_state.app_state in ["INCOMING", "ACTIVE", "COMPLETED"]:
         with c3:
             st.metric("Module 3: Risk Level", m3_final["risk_tier"], f"Status: {m3_final['color']}")
             
-        with st.expander("📋 Nhật ký Kỹ thuật JSON Log cho Ban Giám khảo (UNESCO Standard)", expanded=True):
+        with st.expander("📋 Technical JSON Log for UNESCO Hackathon Judges", expanded=True):
             st.json({
                 "module_1_audio_detector": m1_final,
                 "module_2_harm_assessment": m2_final,
@@ -373,7 +395,7 @@ if st.session_state.app_state in ["INCOMING", "ACTIVE", "COMPLETED"]:
                 }
             })
             
-        if st.button("🔄 Thử nghiệm với File Audio khác", type="secondary"):
+        if st.button("🔄 Test Another Audio File", type="secondary"):
             st.session_state.app_state = "IDLE"
             st.session_state.audio_file_path = None
             st.rerun()
