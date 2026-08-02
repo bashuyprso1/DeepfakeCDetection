@@ -21,7 +21,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Custom CSS: Uses Streamlit Form Container as the Dark Smartphone Frame
+# Custom CSS targeting exact button columns for guaranteed RED & GREEN colors
 st.markdown("""
 <style>
     /* Dark Smartphone Frame Container */
@@ -65,7 +65,7 @@ st.markdown("""
         margin-top: 4px;
     }
 
-    /* Dynamic HUD Alert Overlay Badges */
+    /* Dynamic HUD Alert Badges */
     .hud-red {
         background-color: #450A0A;
         border-left: 6px solid #EF4444;
@@ -98,24 +98,37 @@ st.markdown("""
         margin-top: 6px;
     }
 
-    /* Style Action Buttons Inside Dark Phone Frame */
-    div[data-testid="stForm"] button[data-testid="baseButton-secondary"] {
+    /* GUARANTEED BUTTON COLORS VIA NTH-OF-TYPE COLUMN SELECTOR */
+    /* Left Button (Column 1) - DECLINE: Solid Red */
+    div[data-testid="stForm"] div[data-testid="stColumn"]:nth-of-type(1) button {
         background-color: #DC2626 !important;
-        color: white !important;
+        background: #DC2626 !important;
+        color: #FFFFFF !important;
         border: none !important;
         border-radius: 20px !important;
         height: 48px !important;
         font-weight: bold !important;
         font-size: 14px !important;
+        box-shadow: 0 4px 10px rgba(220, 38, 38, 0.4) !important;
     }
-    div[data-testid="stForm"] button[data-testid="baseButton-primary"] {
+    div[data-testid="stForm"] div[data-testid="stColumn"]:nth-of-type(1) button * {
+        color: #FFFFFF !important;
+    }
+
+    /* Right Button (Column 2) - ACCEPT: Solid Green */
+    div[data-testid="stForm"] div[data-testid="stColumn"]:nth-of-type(2) button {
         background-color: #16A34A !important;
-        color: white !important;
+        background: #16A34A !important;
+        color: #FFFFFF !important;
         border: none !important;
         border-radius: 20px !important;
         height: 48px !important;
         font-weight: bold !important;
         font-size: 14px !important;
+        box-shadow: 0 4px 10px rgba(22, 163, 74, 0.4) !important;
+    }
+    div[data-testid="stForm"] div[data-testid="stColumn"]:nth-of-type(2) button * {
+        color: #FFFFFF !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -262,7 +275,7 @@ if uploaded_audio is not None:
         st.session_state.app_state = "INCOMING"
 
 # =====================================================================
-# STEP 2: INCOMING PHONE CALL SCREEN WITH BUTTONS EMBEDDED INSIDE FRAME
+# STEP 2: INCOMING PHONE CALL SCREEN WITH EMBEDDED BUTTONS INSIDE FRAME
 # =====================================================================
 if st.session_state.app_state in ["INCOMING", "ACTIVE", "COMPLETED"]:
     st.markdown("### 📱 Step 2: Real-Time Smartphone Call Simulation")
@@ -290,9 +303,9 @@ if st.session_state.app_state in ["INCOMING", "ACTIVE", "COMPLETED"]:
                 # Action Buttons placed INSIDE the form container
                 col_decline, col_accept = st.columns(2)
                 with col_decline:
-                    decline_submitted = st.form_submit_button("📵 DECLINE", use_container_width=True, type="secondary")
+                    decline_submitted = st.form_submit_button("📵 DECLINE", use_container_width=True)
                 with col_accept:
-                    accept_submitted = st.form_submit_button("📲 ACCEPT", use_container_width=True, type="primary")
+                    accept_submitted = st.form_submit_button("📲 ACCEPT", use_container_width=True)
 
                 if decline_submitted:
                     st.session_state.app_state = "COMPLETED"
