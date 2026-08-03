@@ -471,22 +471,35 @@ uploaded_audio = st.file_uploader(
     key="audio_uploader"
 )
 
-# STRICT RESET LOGIC WHEN FILE IS REMOVED OR RESET
-if uploaded_audio is None:
-    st.session_state.app_state = "IDLE"
-    st.session_state.audio_file_path = None
-    st.session_state.audio_bytes = None
-    st.session_state.current_file_name = None
-else:
-    # Check if a new file was uploaded
-    if st.session_state.current_file_name != uploaded_audio.name:
-        st.session_state.current_file_name = uploaded_audio.name
-        with tempfile.NamedTemporaryFile(delete=False, suffix=f"_{uploaded_audio.name}") as tmp:
-            tmp.write(uploaded_audio.getvalue())
-            st.session_state.audio_file_path = tmp.name
-            st.session_state.audio_bytes = uploaded_audio.getvalue()
-        st.session_state.app_state = "INCOMING"
+# PRE-COMPUTE PIPELINE MODULES IMMEDIATELY UPON UPLOAD TO ELIMINATE CALL ACCEPTANCE LAG
+if uploaded_audio is not None:
+  if st.session_state.current_file_name != uploaded_audio.name:
+    st.session_state.current_file_name = uploaded_audio.name
+    with tempfile.NamedTemporaryFile(
+        delete=False, suffix=f"_{uploaded_audio.name}"
+    ) as tmp:
+      tmp.write(uploaded_audio.getvalue())
+      st.session_state.audio_file_path = tmp.name
+      st.session_state.audio_bytes = uploaded_audio.getvalue()
 
+    # Tính toán trước dữ liệu để màn hình Active Call xuất hiện lập tức
+    st.session_state.caller_info = get_caller_info(
+        st.session_state.audio_file_path
+    )
+    st.session_state.audio_info = get_audio_file_info(
+        st.session_state.audio_file_path
+    )
+    st.session_state.m1_res = execute_module_1(
+        st.session_state.audio_file_path
+    )
+    st.session_state.m2_res = execute_module_2(
+        st.session_state.audio_file_path
+    )
+    st.session_state.m3_res = execute_module_3(
+        st.session_state.m1_res, st.session_state.m2_res
+    )
+
+    st.session_state.app_state = "INCOMING"
 # =====================================================================
 # STEP 2: INCOMING PHONE CALL SCREEN
 # =====================================================================
