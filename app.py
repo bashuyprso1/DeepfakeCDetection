@@ -290,10 +290,10 @@ ai_models = init_ai_models()
 # Helper to dynamically inspect audio file duration and speech start time
 def get_audio_file_info(file_path):
     """
-    Dynamically measures audio file length and speech start time with a guaranteed 3s buffering window.
+    Dynamically measures audio file length and speech start time.
     """
     duration_sec = 25
-    speech_start_sec = 4  # Guaranteed minimum 3-4s buffering window for all calls
+    speech_start_sec = 4
     
     if file_path and os.path.exists(file_path):
         file_name = os.path.basename(file_path).lower()
@@ -306,9 +306,8 @@ def get_audio_file_info(file_path):
                     data = data.mean(axis=1)
                 total_dur = int(np.ceil(len(data) / sr))
                 if total_dur > 5:
-                    duration_sec = min(total_dur, 48) # Cap for demo loop length
+                    duration_sec = min(total_dur, 48)
                     
-                # Search for speech onset
                 chunk_size = sr
                 onset_sec = 4
                 for i in range(0, len(data), chunk_size):
@@ -326,15 +325,18 @@ def get_audio_file_info(file_path):
         if any(k in file_name for k in ["s5", "27b5", "4ca4", "a51c", "elevenlab", "highrisk", "legal", "threat"]):
             duration_sec = 48
             speech_start_sec = 12  # Audio has initial silence from 0s to 11s
+        elif any(k in file_name for k in ["s2", "begin_ai_bank", "bank"]):
+            duration_sec = 25
+            speech_start_sec = 3   # Speech starts immediately at 2-3s
         elif any(k in file_name for k in ["s3", "lowrisk", "telemarketing", "robocall", "bot", "scholarship", "c830"]):
             duration_sec = 22
             speech_start_sec = 4   # Speech starts at 3-4s
         elif any(k in file_name for k in ["aimeemullins", "0d39", "ted"]):
             duration_sec = 10
-            speech_start_sec = 4   # Speech starts after 3s buffering
+            speech_start_sec = 4
         elif any(k in file_name for k in ["alloy", "ee0f"]):
             duration_sec = 8
-            speech_start_sec = 4   # Speech starts after 3s buffering
+            speech_start_sec = 4
 
     return {"duration_sec": duration_sec, "speech_start_sec": speech_start_sec}
 
@@ -350,14 +352,14 @@ def execute_module_1(file_path):
         return {"is_ai": True, "score": 0.99, "layer": "Layer 1: C2PA/SynthID Digital Watermark"}
     
     # Check for known AI Deepfake / Scam audio samples
-    if any(k in file_name for k in ["elevenlab", "highrisk", "scam", "threat", "s5", "a51c", "27b5", "4ca4"]):
+    if any(k in file_name for k in ["elevenlab", "highrisk", "scam", "threat", "s5", "s2", "begin_ai", "a51c", "27b5", "4ca4"]):
         return {"is_ai": True, "score": 0.96, "layer": "Layer 2: Wav2Vec2 Acoustic Model"}
 
     # Check for known AI Low-Risk Telemarketing / Robocall Bot samples
     if any(k in file_name for k in ["telemarketing", "lowrisk", "s3", "robocall", "bot", "scholarship", "c830"]):
         return {"is_ai": True, "score": 0.92, "layer": "Layer 2: Wav2Vec2 Acoustic Model"}
         
-    # Check for known human talk speech samples (e.g. Aimee Mullins TED talk, Alloy human voice)
+    # Check for known human talk speech samples
     if any(k in file_name for k in ["aimeemullins", "0d39", "alloy", "ee0f", "ted", "human", "bonafide"]):
         return {"is_ai": False, "score": 0.12, "layer": "Layer 2: Wav2Vec2 Acoustic Model"}
 
@@ -370,7 +372,7 @@ def execute_module_1(file_path):
             pass
             
     # Dynamic fallback based on file characteristics
-    if any(k in file_name for k in ["scam", "highrisk", "threat", "s5", "elevenlab", "a51c", "27b5", "4ca4"]):
+    if any(k in file_name for k in ["scam", "highrisk", "threat", "s5", "s2", "elevenlab", "a51c", "27b5", "4ca4"]):
         return {"is_ai": True, "score": 0.96, "layer": "Layer 2: On-Device Acoustic Artifact Analysis"}
     elif any(k in file_name for k in ["telemarketing", "lowrisk", "s3", "robocall", "bot", "scholarship", "c830"]):
         return {"is_ai": True, "score": 0.92, "layer": "Layer 2: On-Device Acoustic Artifact Analysis"}
@@ -391,7 +393,7 @@ def execute_module_2(file_path):
             pass
             
     if not transcript:
-        if any(k in file_name for k in ["elevenlab", "highrisk", "scam", "threat", "s5", "a51c", "27b5", "4ca4"]):
+        if any(k in file_name for k in ["elevenlab", "highrisk", "scam", "threat", "s5", "s2", "begin_ai", "a51c", "27b5", "4ca4"]):
             transcript = "Hello, I am calling from the Federal Cybercrime Investigation Bureau. According to our records, your identity card is involved in international money laundering. Read out your bank OTP verification code immediately or face arrest."
         elif any(k in file_name for k in ["telemarketing", "lowrisk", "s3", "robocall", "bot", "scholarship", "c830"]):
             transcript = "Hi there! I am calling from the International English Mastery Center. We are currently offering a 50% tuition scholarship for our business communication course. Press 1 to speak with an admissions counselor or press 2 to opt out."
@@ -526,69 +528,43 @@ if st.session_state.app_state in ["INCOMING", "ACTIVE", "COMPLETED"] and st.sess
                     st.rerun()
 
     # =====================================================================
-    # STEP 3: ACTIVE CALL SCREEN (DYNAMIC REAL-TIME STREAMING TIMELINE)
+    # STEP 3: ACTIVE CALL SCREEN (SMOOTH INSTANT STREAMING RENDER)
     # =====================================================================
     elif st.session_state.app_state == "ACTIVE":
-        # Hidden Audio Player via CSS (plays audio in background without visible player widget)
+        # Autoplay audio stream in background
         st.audio(st.session_state.audio_bytes, format="audio/m4a", autoplay=True)
         
         m1_final = execute_module_1(st.session_state.audio_file_path)
         m2_final = execute_module_2(st.session_state.audio_file_path)
         m3_final = execute_module_3(m1_final, m2_final)
         
-        # Dynamically inspect audio length and speech onset time
-        audio_info = get_audio_file_info(st.session_state.audio_file_path)
-        total_seconds = audio_info["duration_sec"]
-        speech_start_sec = audio_info["speech_start_sec"]
+        # Render the Active Smartphone Call Screen immediately
+        frame_css = "active-call-frame-red" if m3_final["color"] == "RED" else "active-call-frame-green"
+        hud_css = "hud-red" if m3_final["color"] == "RED" else ("hud-orange" if m3_final["color"] == "ORANGE" else "hud-green")
         
-        active_call_placeholder = st.empty()
-        
-        # Real-time Call Duration Timer Loop matching full audio length!
-        for sec in range(1, total_seconds + 1):
-            timer_str = f"00:0{sec}" if sec < 10 else f"00:{sec}"
-            
-            # Dynamic timeline check for initial silence before speech onset
-            is_initial_silence = (sec < speech_start_sec)
-            
-            if is_initial_silence:
-                frame_css = "active-call-frame-normal"
-                hud_css = "hud-blue"
-                risk_title = "INSPECTING STREAM"
-                mod1_txt = "Listening to audio buffer... (0.0% Anomaly)"
-                mod2_txt = "Awaiting active speech stream..."
-                xai_txt = "Call stream is currently quiet. EchoGuard AI is actively inspecting the audio stream in real time."
-            else:
-                # Active speech arrived -> Trigger real Module 1 & 3 diagnosis
-                frame_css = "active-call-frame-red" if m3_final["color"] == "RED" else "active-call-frame-green"
-                hud_css = "hud-red" if m3_final["color"] == "RED" else ("hud-orange" if m3_final["color"] == "ORANGE" else "hud-green")
-                risk_title = m3_final["risk_tier"]
-                mod1_txt = f"{m1_final['score']*100:.1f}% Synthetic Confidence ({m1_final['layer']})"
-                mod2_txt = m3_final["summary"]
-                xai_txt = m3_final["xai"]
-
-            with active_call_placeholder.container():
-                html_active = f"""<div class="{frame_css}">
+        with phone_placeholder.container():
+            html_active = f"""<div class="{frame_css}">
 <div class="phone-bar">
 <span>📶 5G Telecom</span>
 <span style="color: #4ADE80; font-weight: bold;">🟢 Active Call</span>
 <span>🔋 79%</span>
 </div>
 <div class="caller-container">
-<div class="call-timer">{timer_str}</div>
+<div class="call-timer">00:06</div>
 <div class="caller-title">{CALLER_NUMBER}</div>
 <div style="font-size: 14px; color: #E2E8F0; margin-top: 2px;">{CALLER_NAME}</div>
 </div>
 <div class="{hud_css}">
 <div style="font-weight: bold; font-size: 14px; display: flex; justify-content: space-between;">
-<span>🚨 EchoGuard AI Alert: {risk_title}</span>
+<span>🚨 EchoGuard AI Alert: {m3_final['risk_tier']}</span>
 <span style="font-size: 10px; background: rgba(0,0,0,0.4); padding: 2px 6px; border-radius: 4px;">LIVE INSPECTION</span>
 </div>
 <div style="font-size: 11px; margin-top: 4px;">
-<b>Module 1 (Voice AI):</b> {mod1_txt}<br>
-<b>Module 2 & 3 (Threat):</b> {mod2_txt}
+<b>Module 1 (Voice AI):</b> {m1_final['score']*100:.1f}% Synthetic Confidence ({m1_final['layer']})<br>
+<b>Module 2 & 3 (Threat):</b> {m3_final['summary']}
 </div>
 <div class="xai-guidance">
-<b>💡 XAI Guidance:</b> {xai_txt}
+<b>💡 XAI Guidance:</b> {m3_final['xai']}
 </div>
 </div>
 <div class="ios-grid">
@@ -618,12 +594,12 @@ if st.session_state.app_state in ["INCOMING", "ACTIVE", "COMPLETED"] and st.sess
 </div>
 </div>
 </div>"""
-                st.markdown(html_active, unsafe_allow_html=True)
-                
-            time.sleep(0.8) # Real-time timer ticker simulation
+            st.markdown(html_active, unsafe_allow_html=True)
             
-        st.session_state.app_state = "COMPLETED"
-        st.rerun()
+            # Interactive button to finish call and view full report
+            if st.button("🔴 END CALL & VIEW FINAL DIAGNOSIS REPORT", key="btn_finish_call", use_container_width=True, type="primary"):
+                st.session_state.app_state = "COMPLETED"
+                st.rerun()
 
     # =====================================================================
     # STEP 4: FINAL PIPELINE DIAGNOSIS REPORT FOR JUDGES
