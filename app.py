@@ -221,8 +221,6 @@ st.markdown(
         margin-top: 6px;
     }
 
-    /* GUARANTEED BUTTON COLORS FOR INCOMING CALL FORM */
-    /* Left Button (Column 1) - DECLINE: Solid Red */
     div[data-testid="stForm"] div[data-testid="stColumn"]:nth-of-type(1) button {
         background-color: #DC2626 !important;
         background: #DC2626 !important;
@@ -238,7 +236,6 @@ st.markdown(
         color: #FFFFFF !important;
     }
 
-    /* Right Button (Column 2) - ACCEPT: Solid Green */
     div[data-testid="stForm"] div[data-testid="stColumn"]:nth-of-type(2) button {
         background-color: #16A34A !important;
         background: #16A34A !important;
@@ -261,150 +258,143 @@ st.markdown(
 # =====================================================================
 # 2. SESSION STATE MANAGEMENT
 # =====================================================================
-if 'app_state' not in st.session_state:
-  st.session_state.app_state = (
-      'IDLE'  # IDLE -> INCOMING -> ACTIVE -> COMPLETED
-  )
-if 'audio_file_path' not in st.session_state:
+if "app_state" not in st.session_state:
+  st.session_state.app_state = "IDLE"
+if "audio_file_path" not in st.session_state:
   st.session_state.audio_file_path = None
-if 'audio_bytes' not in st.session_state:
+if "audio_bytes" not in st.session_state:
   st.session_state.audio_bytes = None
-if 'current_file_name' not in st.session_state:
+if "current_file_name" not in st.session_state:
   st.session_state.current_file_name = None
-if 'm1_res' not in st.session_state:
+if "m1_res" not in st.session_state:
   st.session_state.m1_res = None
-if 'm2_res' not in st.session_state:
+if "m2_res" not in st.session_state:
   st.session_state.m2_res = None
-if 'm3_res' not in st.session_state:
+if "m3_res" not in st.session_state:
   st.session_state.m3_res = None
-if 'caller_info' not in st.session_state:
+if "caller_info" not in st.session_state:
   st.session_state.caller_info = None
-if 'audio_info' not in st.session_state:
+if "audio_info" not in st.session_state:
   st.session_state.audio_info = None
 
 
 # =====================================================================
-# 3. INITIALIZE MODELS: FASTER-WHISPER (SMALL) + HUGGINGFACE (CACHED)
+# 3. INITIALIZE MODELS
 # =====================================================================
 @st.cache_resource
 def init_ai_models():
   models = {}
-
-  # 1. Load Faster-Whisper Model
   if HAS_FASTER_WHISPER:
     try:
-      device_type = 'cuda' if torch.cuda.is_available() else 'cpu'
-      compute_type = 'float16' if torch.cuda.is_available() else 'int8'
-      models['faster_whisper'] = WhisperModel(
-          'small', device=device_type, compute_type=compute_type
+      device_type = "cuda" if torch.cuda.is_available() else "cpu"
+      compute_type = "float16" if torch.cuda.is_available() else "int8"
+      models["faster_whisper"] = WhisperModel(
+          "small", device=device_type, compute_type=compute_type
       )
     except Exception:
-      models['faster_whisper'] = None
+      models["faster_whisper"] = None
 
-  # 2. Load HuggingFace Classifiers
   if HAS_TRANSFORMERS:
     device = 0 if torch.cuda.is_available() else -1
     try:
-      models['mod1'] = pipeline(
-          'audio-classification',
-          model='garystafford/wav2vec2-deepfake-voice-detector',
+      models["mod1"] = pipeline(
+          "audio-classification",
+          model="garystafford/wav2vec2-deepfake-voice-detector",
           device=device,
       )
     except Exception:
-      models['mod1'] = None
+      models["mod1"] = None
     try:
-      models['mod2_intent'] = pipeline(
-          'zero-shot-classification',
-          model='MoritzLaurer/mDeBERTa-v3-base-mnli-xnli',
+      models["mod2_intent"] = pipeline(
+          "zero-shot-classification",
+          model="MoritzLaurer/mDeBERTa-v3-base-mnli-xnli",
           device=device,
       )
     except Exception:
-      models['mod2_intent'] = None
+      models["mod2_intent"] = None
   return models
 
 
 ai_models = init_ai_models()
 
 
-# Dynamic Caller Info Resolver
 def get_caller_info(file_path):
-  file_name = os.path.basename(file_path).lower() if file_path else ''
+  file_name = os.path.basename(file_path).lower() if file_path else ""
 
   if any(
       k in file_name
       for k in [
-          's5',
-          'highrisk_legal',
-          'fbi',
-          'cybercrime',
-          'legal',
-          'threat',
-          '27b5',
+          "s5",
+          "highrisk_legal",
+          "fbi",
+          "cybercrime",
+          "legal",
+          "threat",
+          "27b5",
       ]
   ):
     return {
-        'name': 'Federal Investigation Bureau',
-        'number': '+1 (800) 555-0199',
-        'sub': '⚠️ Unverified Telecom Number',
+        "name": "Federal Investigation Bureau",
+        "number": "+1 (800) 555-0199",
+        "sub": "⚠️ Unverified Telecom Number",
     }
   elif any(
       k in file_name
       for k in [
-          's4',
-          'highrisk_deepfake',
-          'emergency',
-          'accident',
-          'hospital',
-          'a51c',
-          '4ca4',
+          "s4",
+          "highrisk_deepfake",
+          "emergency",
+          "accident",
+          "hospital",
+          "a51c",
+          "4ca4",
       ]
   ):
     return {
-        'name': 'Unknown Caller (Emergency)',
-        'number': '+1 (555) 019-2831',
-        'sub': '⚠️ High-Risk Unregistered Line',
+        "name": "Unknown Caller (Emergency)",
+        "number": "+1 (555) 019-2831",
+        "sub": "⚠️ High-Risk Unregistered Line",
     }
   elif any(
       k in file_name
-      for k in ['s3', 'lowrisk', 'telemarketing', 'robocall', 'c830']
+      for k in ["s3", "lowrisk", "telemarketing", "robocall", "c830"]
   ):
     return {
-        'name': 'English Mastery Center',
-        'number': '+1 (888) 402-9112',
-        'sub': 'ℹ️ Verified Telemarketing Line',
+        "name": "English Mastery Center",
+        "number": "+1 (888) 402-9112",
+        "sub": "ℹ️ Verified Telemarketing Line",
     }
   elif any(
-      k in file_name for k in ['s2', 'bank', 'global', 'credit', 'statement']
+      k in file_name for k in ["s2", "bank", "global", "credit", "statement"]
   ):
     return {
-        'name': 'Global Standard Bank',
-        'number': '+1 (800) 456-2265',
-        'sub': 'ℹ️ Official Bank Automated Service',
+        "name": "Global Standard Bank",
+        "number": "+1 (800) 456-2265",
+        "sub": "ℹ️ Official Bank Automated Service",
     }
-  elif any(k in file_name for k in ['alloy']):
+  elif any(k in file_name for k in ["alloy"]):
     return {
-        'name': 'AI Storyteller Assistant',
-        'number': '+1 (800) 000-0100',
-        'sub': '🤖 Synthetic Voice Stream',
+        "name": "AI Storyteller Assistant",
+        "number": "+1 (800) 000-0100",
+        "sub": "🤖 Synthetic Voice Stream",
     }
-  elif any(k in file_name for k in ['aimeemullins', '0d39', 'ted', 'human']):
+  elif any(k in file_name for k in ["aimeemullins", "0d39", "ted", "human"]):
     return {
-        'name': 'Aimee Mullins (Personal)',
-        'number': '+1 (212) 555-0144',
-        'sub': '✅ Verified Contact',
+        "name": "Aimee Mullins (Personal)",
+        "number": "+1 (212) 555-0144",
+        "sub": "✅ Verified Contact",
     }
   else:
     return {
-        'name': 'Unknown Caller',
-        'number': '+1 (800) 555-0123',
-        'sub': '⚠️ Unverified Number',
+        "name": "Unknown Caller",
+        "number": "+1 (800) 555-0123",
+        "sub": "⚠️ Unverified Number",
     }
 
 
-# Helper to dynamically inspect audio file duration and speech start time
 def get_audio_file_info(file_path):
+  """Dynamic audio inspection that places the detection trigger exactly at the MIDPOINT (~45%-50%) of the audio duration."""
   duration_sec = 25
-  speech_start_sec = 2
 
   if file_path and os.path.exists(file_path):
     file_name = os.path.basename(file_path).lower()
@@ -415,49 +405,38 @@ def get_audio_file_info(file_path):
         if data.ndim > 1:
           data = data.mean(axis=1)
         total_dur = int(np.ceil(len(data) / sr))
-        if total_dur > 2:
-          duration_sec = min(total_dur, 48)
-
-        chunk_size = sr
-        onset_sec = 2
-        for i in range(0, len(data), chunk_size):
-          chunk = data[i : i + chunk_size]
-          rms = np.sqrt(np.mean(chunk**2))
-          sec = (i // sr) + 1
-          if rms > 0.008:
-            onset_sec = max(sec, 2)
-            break
-        return {"duration_sec": duration_sec, "speech_start_sec": onset_sec}
+        if total_dur >= 2:
+          duration_sec = min(total_dur, 60)
       except Exception:
         pass
+    else:
+      if any(k in file_name for k in ["s5", "27b5", "legal", "threat"]):
+        duration_sec = 28
+      elif any(k in file_name for k in ["s4", "a51c", "4ca4", "emergency"]):
+        duration_sec = 33
+      elif any(k in file_name for k in ["s3", "c830", "telemarketing"]):
+        duration_sec = 21
+      elif any(k in file_name for k in ["s2", "bank"]):
+        duration_sec = 26
+      elif any(k in file_name for k in ["aimeemullins", "0d39", "ted"]):
+        duration_sec = 8
+      elif any(k in file_name for k in ["alloy", "ee0f"]):
+        duration_sec = 5
 
-    if any(k in file_name for k in ["s5", "27b5", "legal", "threat"]):
-      duration_sec = 28
-      speech_start_sec = 2
-    elif any(k in file_name for k in ["s4", "a51c", "4ca4", "emergency"]):
-      duration_sec = 33
-      speech_start_sec = 3
-    elif any(k in file_name for k in ["s3", "c830", "telemarketing"]):
-      duration_sec = 21
-      speech_start_sec = 2
-    elif any(k in file_name for k in ["s2", "bank"]):
-      duration_sec = 26
-      speech_start_sec = 2
-    elif any(k in file_name for k in ["aimeemullins", "0d39", "ted"]):
-      duration_sec = 8
-      speech_start_sec = 1
-    elif any(k in file_name for k in ["alloy", "ee0f"]):
-      duration_sec = 5
-      speech_start_sec = 1
+  # DYNAMIC MIDPOINT TRIGGER:
+  # Sets the result trigger to the middle of the audio stream (~45%-50% of total duration).
+  detection_trigger_sec = max(3, int(np.ceil(duration_sec * 0.45)))
 
-  return {"duration_sec": duration_sec, "speech_start_sec": speech_start_sec}
+  return {
+      "duration_sec": duration_sec,
+      "detection_trigger_sec": detection_trigger_sec,
+  }
 
 
 # =====================================================================
-# 4. DYNAMIC MODULE PIPELINE EXECUTION ALGORITHMS
+# 4. PIPELINE MODULES
 # =====================================================================
 def execute_module_1(file_path):
-  """Module 1: AI Voice Detection (C2PA Watermark + Wav2Vec2 Acoustic Model)"""
   file_name = os.path.basename(file_path).lower() if file_path else ""
 
   if "synthid" in file_name or "c2pa" in file_name:
@@ -595,7 +574,6 @@ def execute_module_1(file_path):
 
 
 def execute_module_2(file_path):
-  """Module 2: Harm Assessment (Faster-Whisper ASR + Zero-Shot Intent Classifier)"""
   file_name = os.path.basename(file_path).lower() if file_path else ""
   transcript = ""
 
@@ -738,7 +716,6 @@ def execute_module_2(file_path):
 
 
 def execute_module_3(mod1_res, mod2_res):
-  """Module 3: Risk Tier Classification (High Risk / Medium Risk / Low Risk / Human Voice)"""
   if not mod1_res["is_ai"]:
     return {
         "risk_tier": "HUMAN_VOICE",
@@ -806,7 +783,7 @@ def execute_module_3(mod1_res, mod2_res):
 
 
 # =====================================================================
-# 5. APPLICATION HEADER (100% ENGLISH)
+# 5. APPLICATION HEADER
 # =====================================================================
 st.title("🛡️ EchoGuard AI")
 st.subheader("Real-time On-Device AI Voice Risk Detection & Nudge System")
@@ -815,7 +792,7 @@ st.caption("UNESCO Youth Hackathon 2026 | Media and Information Literacy (MIL)")
 st.divider()
 
 # =====================================================================
-# STEP 1: UPLOAD TEST AUDIO FILE (WITH PRE-ANALYSIS FOR ZERO LAG)
+# STEP 1: UPLOAD TEST AUDIO FILE
 # =====================================================================
 st.markdown("### 📥 Step 1: Upload Test Audio File (.m4a, .wav, .mp3)")
 uploaded_audio = st.file_uploader(
@@ -844,7 +821,6 @@ else:
       st.session_state.audio_file_path = tmp.name
       st.session_state.audio_bytes = uploaded_audio.getvalue()
 
-    # Pre-compute pipeline modules immediately upon upload
     st.session_state.caller_info = get_caller_info(
         st.session_state.audio_file_path
     )
@@ -913,7 +889,7 @@ if (
           st.rerun()
 
   # =====================================================================
-  # STEP 3: ACTIVE CALL SCREEN
+  # STEP 3: ACTIVE CALL SCREEN (DYNAMIC MIDPOINT TRIGGER)
   # =====================================================================
   elif st.session_state.app_state == "ACTIVE":
     st.audio(st.session_state.audio_bytes, format="audio/m4a", autoplay=True)
@@ -930,16 +906,18 @@ if (
         st.session_state.audio_file_path
     )
     total_seconds = audio_info["duration_sec"]
-    speech_start_sec = audio_info["speech_start_sec"]
+    detection_trigger_sec = audio_info["detection_trigger_sec"]
 
     active_call_placeholder = st.empty()
 
     for sec in range(1, total_seconds + 1):
       timer_str = f"00:0{sec}" if sec < 10 else f"00:{sec}"
 
-      is_initial_silence = sec < speech_start_sec
+      # PHASE 1 (NỬA ĐẦU ĐOẠN AUDIO): INSPECTING STREAM
+      # PHASE 2 (ĐOẠN GIỮA ĐẾN CUỐI): HIỂN THỊ KẾT QUẢ CẢNH BÁO
+      is_inspecting_phase = sec < detection_trigger_sec
 
-      if is_initial_silence:
+      if is_inspecting_phase:
         frame_css = "active-call-frame-normal"
         hud_css = "hud-blue"
         risk_title = "INSPECTING STREAM"
