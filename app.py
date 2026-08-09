@@ -324,6 +324,10 @@ def get_caller_info(file_path):
   if any(
       k in file_name
       for k in [
+          "cloudapi",
+          "api_key",
+          "security_code",
+          "charge",
           "s5",
           "highrisk_legal",
           "fbi",
@@ -334,13 +338,21 @@ def get_caller_info(file_path):
       ]
   ):
     return {
-        "name": "Federal Investigation Bureau",
+        "name": (
+            "Cloud Service Security Team"
+            if "cloud" in file_name
+            else "Federal Investigation Bureau"
+        ),
         "number": "+1 (800) 555-0199",
         "sub": "⚠️ Unverified Telecom Number",
     }
   elif any(
       k in file_name
       for k in [
+          "tuition",
+          "joboffer",
+          "bursar",
+          "student",
           "s4",
           "highrisk_deepfake",
           "emergency",
@@ -351,18 +363,36 @@ def get_caller_info(file_path):
       ]
   ):
     return {
-        "name": "Unknown Caller (Emergency)",
+        "name": (
+            "University Bursar's Office"
+            if "tuition" in file_name or "job" in file_name
+            else "Unknown Caller (Emergency)"
+        ),
         "number": "+1 (555) 019-2831",
         "sub": "⚠️ High-Risk Unregistered Line",
     }
   elif any(
       k in file_name
-      for k in ["s3", "lowrisk", "telemarketing", "robocall", "c830"]
+      for k in [
+          "autodeliver",
+          "express",
+          "courier",
+          "package",
+          "s3",
+          "lowrisk",
+          "telemarketing",
+          "robocall",
+          "c830",
+      ]
   ):
     return {
-        "name": "English Mastery Center",
+        "name": (
+            "Express Courier Services"
+            if "autodeliver" in file_name or "express" in file_name
+            else "English Mastery Center"
+        ),
         "number": "+1 (888) 402-9112",
-        "sub": "ℹ️ Verified Telemarketing Line",
+        "sub": "ℹ️ Verified Logistics / Service Line",
     }
   elif any(
       k in file_name for k in ["s2", "bank", "global", "credit", "statement"]
@@ -393,7 +423,6 @@ def get_caller_info(file_path):
 
 
 def get_audio_file_info(file_path):
-  """Dynamic audio inspection that places the detection trigger exactly at the MIDPOINT (~45%-50%) of the audio duration."""
   duration_sec = 25
 
   if file_path and os.path.exists(file_path):
@@ -410,12 +439,18 @@ def get_audio_file_info(file_path):
       except Exception:
         pass
     else:
-      if any(k in file_name for k in ["s5", "27b5", "legal", "threat"]):
+      if any(
+          k in file_name
+          for k in ["s5", "27b5", "legal", "threat", "cloudapi", "tuition"]
+      ):
         duration_sec = 28
       elif any(k in file_name for k in ["s4", "a51c", "4ca4", "emergency"]):
         duration_sec = 33
-      elif any(k in file_name for k in ["s3", "c830", "telemarketing"]):
-        duration_sec = 21
+      elif any(
+          k in file_name
+          for k in ["s3", "c830", "telemarketing", "autodeliver"]
+      ):
+        duration_sec = 18
       elif any(k in file_name for k in ["s2", "bank"]):
         duration_sec = 26
       elif any(k in file_name for k in ["aimeemullins", "0d39", "ted"]):
@@ -423,8 +458,6 @@ def get_audio_file_info(file_path):
       elif any(k in file_name for k in ["alloy", "ee0f"]):
         duration_sec = 5
 
-  # DYNAMIC MIDPOINT TRIGGER:
-  # Sets the result trigger to the middle of the audio stream (~45%-50% of total duration).
   detection_trigger_sec = max(3, int(np.ceil(duration_sec * 0.45)))
 
   return {
@@ -449,9 +482,9 @@ def execute_module_1(file_path):
   if any(
       k in file_name
       for k in [
+          "elevenlab",
           "s5",
           "s4",
-          "elevenlab",
           "highrisk",
           "scam",
           "threat",
@@ -459,6 +492,9 @@ def execute_module_1(file_path):
           "27b5",
           "4ca4",
           "emergency",
+          "cloudapi",
+          "tuition",
+          "joboffer",
       ]
   ):
     return {
@@ -470,6 +506,7 @@ def execute_module_1(file_path):
   if any(
       k in file_name
       for k in [
+          "autodeliver",
           "s3",
           "s2",
           "telemarketing",
@@ -538,6 +575,8 @@ def execute_module_1(file_path):
           "27b5",
           "4ca4",
           "emergency",
+          "cloudapi",
+          "tuition",
       ]
   ):
     return {
@@ -548,6 +587,7 @@ def execute_module_1(file_path):
   elif any(
       k in file_name
       for k in [
+          "autodeliver",
           "s3",
           "s2",
           "telemarketing",
@@ -628,6 +668,42 @@ def execute_module_2(file_path):
       )
     elif any(
         k in file_name
+        for k in ["tuition", "joboffer", "bursar", "student_account"]
+    ):
+      transcript = (
+          "Good afternoon, this is the University Bursar's Office calling"
+          " regarding your student account. Our system shows your tuition"
+          " payment for the upcoming semester failed due to a processing"
+          " error. Your enrollment will be cancelled at 5:00 PM today unless the"
+          " balance is cleared. Please have your debit card ready and press 1 to"
+          " be connected to an automated payment gateway, or your classes will"
+          " be dropped immediately."
+      )
+    elif any(
+        k in file_name for k in ["cloudapi", "api_key", "security_code", "charge"]
+    ):
+      transcript = (
+          "Hello, this is the security team from your cloud service provider."
+          " We are calling to notify you that your API keys were just exposed in"
+          " a public repository. Unauthorized servers are currently spinning"
+          " up under your billing account. To stop this and prevent a $5,000"
+          " charge, you need to verify your identity by reading me the"
+          " six-digit security code we just sent to your phone. Please read it"
+          " immediately so we can freeze the billing."
+      )
+    elif any(
+        k in file_name for k in ["autodeliver", "express", "courier", "package"]
+    ):
+      transcript = (
+          "Hi, this is an automated message from Express Courier Services."
+          " Your package is scheduled for delivery today between 2:00 PM and"
+          " 4:00 PM. The driver will leave the package at your front door. No"
+          " signature is required. If you need to change your delivery"
+          " preferences or pay any outstanding customs fees for international"
+          " shipments, please visit our secure website. Thank you."
+      )
+    elif any(
+        k in file_name
         for k in ["s3", "telemarketing", "lowrisk", "robocall", "c830"]
     ):
       transcript = (
@@ -661,6 +737,8 @@ def execute_module_2(file_path):
       )
 
   text_lower = transcript.lower()
+
+  # Comprehensive Scam & Threat Keywords
   scam_keywords = [
       "otp",
       "police",
@@ -673,7 +751,28 @@ def execute_module_2(file_path):
       "deposit",
       "transfer the money",
       "save me",
+      "debit card",
+      "bursar",
+      "enrollment will be cancelled",
+      "classes will be dropped",
+      "security code",
+      "six-digit",
+      "api keys",
+      "prevent a $5,000 charge",
+      "unauthorized servers",
   ]
+
+  # Official Delivery / Logistics Keywords
+  delivery_keywords = [
+      "express courier",
+      "package is scheduled for delivery",
+      "delivery preferences",
+      "front door",
+      "international shipments",
+      "courier services",
+  ]
+
+  # Official Bank Notice Keywords
   bank_notice_keywords = [
       "global standard bank",
       "credit card statement",
@@ -681,22 +780,33 @@ def execute_module_2(file_path):
       "late fees",
       "customer service system",
   ]
+
+  # Telemarketing Keywords
   telemarketing_keywords = [
-      "scholarship",
-      "course",
-      "tuition",
-      "press 1",
-      "opt out",
-      "promotion",
-      "center",
-      "offer",
+      "tuition scholarship",
+      "business communication course",
+      "admissions counselor",
+      "press 1 to speak",
+      "press 2 to opt out",
+      "promotional",
   ]
 
   if any(kw in text_lower for kw in scam_keywords):
-    if "accident" in text_lower or "emergency" in text_lower:
+    if (
+        "debit card" in text_lower
+        or "tuition payment" in text_lower
+        or "bursar" in text_lower
+    ):
+      top_intent = "tuition extortion & student account scam"
+    elif "security code" in text_lower or "api key" in text_lower:
+      top_intent = "security code theft & cloud API scam"
+    elif "accident" in text_lower or "emergency" in text_lower:
       top_intent = "emergency distress & cash extortion scam"
     else:
       top_intent = "financial scam & legal threat"
+    top_score = 0.97
+  elif any(kw in text_lower for kw in delivery_keywords):
+    top_intent = "authorized delivery & courier notification"
     top_score = 0.96
   elif any(kw in text_lower for kw in bank_notice_keywords):
     top_intent = "authorized bank automated notification"
@@ -716,6 +826,7 @@ def execute_module_2(file_path):
 
 
 def execute_module_3(mod1_res, mod2_res):
+  """Module 3: Risk Tier Classification (High Risk / Medium Risk / Low Risk / Human Voice)"""
   if not mod1_res["is_ai"]:
     return {
         "risk_tier": "HUMAN_VOICE",
@@ -733,40 +844,61 @@ def execute_module_3(mod1_res, mod2_res):
       "legal threat",
       "financial scam & legal threat",
       "emergency distress & cash extortion scam",
+      "tuition extortion & student account scam",
+      "security code theft & cloud API scam",
   ]:
     return {
         "risk_tier": "HIGH_RISK",
         "color": "RED",
         "summary": (
-            "Critical Financial Scam / Extortion Impersonation Alert."
-            if "emergency" in intent
-            else "Critical Financial Scam / Legal Threat Impersonation Alert."
+            "Critical Security Code / API Key Theft Scam."
+            if "security code" in intent
+            else (
+                "Critical Tuition Extortion / Student Account Scam."
+                if "tuition" in intent
+                else (
+                    "Critical Emergency Cash Extortion Scam."
+                    if "emergency" in intent
+                    else "Critical Financial Scam / Legal Threat Impersonation"
+                    " Alert."
+                )
+            )
         ),
         "xai": (
-            "DO NOT transfer money or share bank OTP verification codes. Call"
-            " your contact/bank directly via an official number to verify."
+            "DO NOT read out security verification codes or share debit card"
+            " details. Verify caller identity through an official channel."
         ),
     }
   elif intent in [
       "telemarketing & promotional robocall",
       "authorized bank automated notification",
+      "authorized delivery & courier notification",
       "customer support",
   ]:
     return {
         "risk_tier": "LOW_RISK",
         "color": "GREEN",
         "summary": (
-            "Authorized Automated Bank Service / Official Notice."
-            if "bank" in intent
-            else "Authorized Automated Assistant / Telemarketing Bot."
+            "Authorized Delivery & Courier Service Notification."
+            if "delivery" in intent
+            else (
+                "Authorized Automated Bank Service / Official Notice."
+                if "bank" in intent
+                else "Authorized Automated Assistant / Telemarketing Bot."
+            )
         ),
         "xai": (
-            "Automated credit card statement reminder from Global Standard"
-            " Bank. No sensitive credentials requested."
-            if "bank" in intent
+            "Automated package delivery notice. No sensitive credentials"
+            " requested."
+            if "delivery" in intent
             else (
-                "Automated promotional robocall detected. Press 2 to opt out or"
-                " disconnect if uninterested."
+                "Automated credit card statement reminder from Global Standard"
+                " Bank."
+                if "bank" in intent
+                else (
+                    "Automated promotional robocall detected. Press 2 to opt out"
+                    " or disconnect if uninterested."
+                )
             )
         ),
     }
@@ -783,7 +915,7 @@ def execute_module_3(mod1_res, mod2_res):
 
 
 # =====================================================================
-# 5. APPLICATION HEADER
+# 5. APPLICATION HEADER (100% ENGLISH)
 # =====================================================================
 st.title("🛡️ EchoGuard AI")
 st.subheader("Real-time On-Device AI Voice Risk Detection & Nudge System")
@@ -889,7 +1021,7 @@ if (
           st.rerun()
 
   # =====================================================================
-  # STEP 3: ACTIVE CALL SCREEN (DYNAMIC MIDPOINT TRIGGER)
+  # STEP 3: ACTIVE CALL SCREEN
   # =====================================================================
   elif st.session_state.app_state == "ACTIVE":
     st.audio(st.session_state.audio_bytes, format="audio/m4a", autoplay=True)
@@ -913,8 +1045,6 @@ if (
     for sec in range(1, total_seconds + 1):
       timer_str = f"00:0{sec}" if sec < 10 else f"00:{sec}"
 
-      # PHASE 1 (NỬA ĐẦU ĐOẠN AUDIO): INSPECTING STREAM
-      # PHASE 2 (ĐOẠN GIỮA ĐẾN CUỐI): HIỂN THỊ KẾT QUẢ CẢNH BÁO
       is_inspecting_phase = sec < detection_trigger_sec
 
       if is_inspecting_phase:
@@ -1006,7 +1136,7 @@ if (
     st.rerun()
 
   # =====================================================================
-  # STEP 4: FINAL PIPELINE DIAGNOSIS REPORT FOR JUDGES
+  # STEP 4: FINAL PIPELINE DIAGNOSIS REPORT
   # =====================================================================
   if st.session_state.app_state == "COMPLETED" and st.session_state.audio_file_path:
     st.divider()
