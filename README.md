@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="Logo.png" alt="EchoGuard AI Logo" width="400"/>
+  <h1> <img src="Logo.png" alt="EchoGuard AI Logo" width="400"/> <h1>
   <p><b>Real-time On-Device AI Voice Risk Protection</b></p>
   <p><i>Safeguarding Vulnerable Citizens in the Age of Generative AI Scams</i></p>
 </div>
