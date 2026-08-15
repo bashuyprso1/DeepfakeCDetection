@@ -1,6 +1,5 @@
 <div align="center">
-  <!-- Thay thế src="logo.png" bằng đường dẫn tới logo thực tế của bạn -->
-  <img src="logo.png" alt="EchoGuard AI Logo" width="150" height="150"/>
+  <img src="image_12bc43.png" alt="EchoGuard AI Logo" width="400"/>
   <h1>🛡️ EchoGuard AI</h1>
   <p><b>Real-time On-Device AI Voice Risk Protection</b></p>
   <p><i>Safeguarding Vulnerable Citizens in the Age of Generative AI Scams</i></p>
@@ -8,50 +7,69 @@
 
 ---
 
-## 🌟 Highlight: Open-Source GitHub Repository
-We are proudly open-source! Join our community, review our code, and contribute to building a trustworthy digital future.
+## 📖 About EchoGuard AI
+**EchoGuard AI** is a real-time, on-device digital guardian designed to restore fundamental trust in telecommunications. In an era where cybercriminals can clone voices using generative AI in just 3 seconds to trick vulnerable populations, cloud-based defenses fail due to fatal live-call latency and privacy violations. 
 
-🔗 **GitHub Repository:** [bashuyprso1/deepfakecdetection](https://github.com/bashuyprso1/deepfakecdetection)
+EchoGuard AI protects everyday citizens—especially seniors, students, and busy families—from voice scams (vishing) and deepfake calls while keeping personal conversations completely private.
 
-⭐ **Star us on GitHub** to support privacy-first, edge-AI security!
+### 🌟 Core Differentiators
+- **100% Private & Local:** All audio analysis, speech recognition, and intent understanding happen locally inside your phone's processor. Zero cloud streaming ensures total data sovereignty.
+- **Helpful, Not Controlling:** It acts as an advisory co-pilot. It never cuts off your phone calls or interferes without your consent; it provides a gentle, transparent HUD alert.
+- **Privacy Switch Engaged:** The moment an authentic human voice is verified, EchoGuard AI immediately stops monitoring to ensure complete privacy.
+- **Empowering through MIL:** Integrated with Media and Information Literacy (MIL) principles. It explains *why* a call is risky, turning threats into literacy training moments.
 
 ---
 
-## 📖 About EchoGuard AI
-**EchoGuard AI** is your real-time on-device digital guardian. In an era where cybercriminals clone voices using AI in seconds, EchoGuard AI protects everyday citizens—especially seniors, students, and busy families—from voice scams (vishing) and deepfake calls while keeping personal conversations completely private.
+## 🚀 How to Use the App (Web Simulator)
 
-### What Makes Us Different?
-- **100% Private (Zero Cloud Data):** Runs entirely on your smartphone. Your voice, audio, and calls are never sent to external servers.
-- **Helpful, Not Controlling:** It never cuts off your phone calls. It acts as an advisory co-pilot with gentle screen alerts.
-- **Builds Media Literacy (MIL):** Explains *why* a call is risky, empowering users to spot scams.
-- **High Performance, Low Specs:** Uses an ONNX INT8 Engine (~25MB footprint) for sub-30ms latency on budget hardware.
+Experience how the system protects you during a live smartphone call through our interactive web demo:
 
-## 🚀 How It Works (Web Simulator)
-Experience the live smartphone call protection in 4 simple steps:
-1. **Upload Audio:** Choose a test call scenario (`.m4a`, `.wav`, or `.mp3`).
-2. **Receive Call:** Review caller info and Accept/Decline.
-3. **Smart HUD Alerts:**
-   - 🚨 **Red (HIGH_RISK):** Critical Scam Detected. Hang up!
-   - ⚠ **Orange (MEDIUM_RISK):** Unverified AI Voice Detected.
-   - ℹ️ **Green (LOW_RISK):** Official Automated Service.
-   - ✅ **Green Safe (HUMAN_VOICE):** Real Human. Privacy Switch engaged (monitoring stops).
-4. **Safety Diagnosis:** Review the final pipeline diagnosis report (Voice Source, Harm Intent, Risk Level).
+### Step 1: Choose a Test Call Scenario
+Upload an audio file (`.m4a`, `.wav`, or `.mp3`) simulating a scam, delivery notice, or family conversation. The system will load the call scenario into the smartphone simulation frame.
 
-## 🛡️ Security Framework
-A multi-layered defense mechanism at the edge:
-1. **Voice Provenance:** Wav2Vec2 Acoustic Analysis (C2PA & SynthID metadata).
-2. **Harm Assessment:** SLM Intent Analysis (Real-time speech scanning).
-3. **Mitigation:** Automated risk tiering and UI safety nudges.
+### Step 2: Receive the Incoming Call
+Check the Caller Information (e.g., "Global Standard Bank" or "Unknown Caller") and status badge. Choose to **ACCEPT** (Green Button) to start live inspection.
 
-## 📜 Ethical Governance
+### Step 3: Read Smart HUD Alerts During the Call
+As the audio plays, EchoGuard AI quietly monitors the stream buffer. Watch the banner for real-time risk indicators:
+- 🚨 **Red Alert (HIGH_RISK):** Critical Scam Detected! (AI voice cloning, fake legal threats, OTP theft). *Action: Hang up immediately.*
+- ⚠ **Orange Alert (MEDIUM_RISK):** Unverified AI Voice Detected. No explicit scam intent yet, but exercise caution.
+- ℹ️ **Green Alert (LOW_RISK):** Official Automated Service (e.g., package delivery notice).
+- ✅ **Green Safe (HUMAN_VOICE):** Real Human Speech Verified. *Privacy Switch Engaged — Monitoring Stops!*
+
+### Step 4: Review Your Safety Diagnosis
+After the call, review the final pipeline report detailing Voice Source Metric (AI vs. Human confidence), Harm Intent, and the final Risk Level.
+
+---
+
+## 🛡️ Edge-Native Security Framework
+
+A multi-layered defense mechanism operating efficiently on the edge:
+
+1. **Voice Provenance (Wav2Vec2 Acoustic Analysis):** Secures the local entry point using C2PA & SynthID standard metadata.
+2. **Harm Assessment (SLM Intent Analysis):** Scans speech locally in real-time to intercept social engineering patterns.
+3. **Mitigation (Risk Tiering):** Automates instant, proactive UI safety nudges and defensive warnings.
+
+---
+
+## ⚡ Performance & Efficiency
+Optimized for global accessibility and budget hardware:
+- **Latency:** Sub-30ms execution.
+- **Footprint:** ~25MB using a highly optimized ONNX INT8 Engine.
+- **Robustness:** Resilient across GSM/VoIP audio codecs (Data augmentation).
+
+---
+
+## 📜 Ethical Governance & Compliance
 Aligned with the **UNESCO Recommendation on the Ethics of AI (2021)**:
-- **Proportionality & Fairness:** Mitigates bias and ensures non-discriminatory service.
-- **Human Oversight:** The user remains the final authority in every interaction.
-- **Safety & Security:** Architected with adversarial hardening against digital threats.
+- **Proportionality & Fairness:** EIA compliance mandates rigorous mitigation of accent bias, ensuring non-discriminatory service across diverse linguistic backgrounds.
+- **Human Oversight:** Human-in-the-loop governance ensures that automated processes always defer to user agency.
+- **Safety & Security:** Architected with adversarial hardening to prevent malicious exploitation.
 
-## 🔗 Project Links
-- **GitHub Repository:** [bashuyprso1/deepfakecdetection](https://github.com/bashuyprso1/deepfakecdetection)
-- **Proposal Document:** EchoGuard AI Proposal Document (UNESCO Youth Hackathon 2026)
-- **Pitch Deck Presentation:** EchoGuard AI Pitch Deck
-- **Ethical Impact Assessment:** EchoGuard AI EIA Document
-- **Technical Testing Manual:** EchoGuard AI Web Demo User Guide
+---
+
+## 🗺️ Strategic Roadmap
+From local protection to a global standard:
+- **Phase 1:** Android/iOS Release & NGO pilots to establish foundational trust with community partners.
+- **Phase 2:** Telecom Integration for deep scaling through infrastructure partnerships.
+- **Phase 3:** Open-Source Core transitioning to a global public utility for transparent community development and audit.
